@@ -20,7 +20,7 @@ const chatRoutes = require("./routes/chatRoutes");
 
 // Middlewares
 app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:3000"],
+  origin: ["http://localhost:5173", "https://lastchat-psi.vercel.app"],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
