@@ -226,87 +226,98 @@ const GroupChat = () => {
                 <div className="members-panel" style={{
                     background: '#f0f2f5',
                     borderBottom: '1px solid #e9ecef',
-                    padding: '12px 16px',
-                    maxHeight: '200px',
-                    overflowY: 'auto'
+                    padding: '8px 16px',
+                    height: '80px',
+                    overflowX: 'auto',
+                    overflowY: 'hidden'
                 }}>
                     <div className="members-header" style={{
-                        marginBottom: '12px'
+                        marginBottom: '8px'
                     }}>
                         <h3 style={{
                             margin: 0,
-                            fontSize: '14px',
+                            fontSize: '12px',
                             fontWeight: '600',
                             color: '#075e54'
-                        }}>Online Members ({onlineUsers.length})</h3>
+                        }}>All Members ({group?.users?.length || 0})</h3>
                     </div>
-                    {/* Show only online users */}
-                    {onlineUsers.length > 0 ? (
-                        <div className="online-users-list" style={{
+                    {/* Show all group members in horizontal slider */}
+                    {group?.users && group.users.length > 0 ? (
+                        <div className="members-slider" style={{
                             display: 'flex',
-                            flexDirection: 'column',
-                            gap: '8px'
+                            gap: '8px',
+                            alignItems: 'center',
+                            height: '50px',
+                            overflowX: 'auto',
+                            overflowY: 'hidden',
+                            paddingBottom: '4px'
                         }}>
-                            {onlineUsers.map((onlineUser) => (
-                                <div key={onlineUser._id} className="online-user-item" style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    padding: '8px 12px',
-                                    background: 'white',
-                                    borderRadius: '12px',
-                                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                                }}>
-                                    <div className="online-user-avatar" style={{
-                                        width: '32px',
-                                        height: '32px',
-                                        borderRadius: '50%',
-                                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                        color: 'white',
+                            {group.users.map((member) => {
+                                const isOnline = onlineUsers.some(onlineUser => onlineUser._id === member._id);
+                                return (
+                                    <div key={member._id} className="member-slide" style={{
                                         display: 'flex',
+                                        flexDirection: 'column',
                                         alignItems: 'center',
-                                        justifyContent: 'center',
-                                        fontSize: '12px',
-                                        fontWeight: 'bold',
-                                        marginRight: '12px',
-                                        position: 'relative'
+                                        minWidth: '50px',
+                                        padding: '4px',
+                                        background: 'white',
+                                        borderRadius: '8px',
+                                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                                        cursor: 'pointer',
+                                        transition: 'transform 0.2s'
                                     }}>
-                                        {onlineUser.avatar ? (
-                                            <img src={onlineUser.avatar} alt={onlineUser.name} style={{
-                                                width: '100%',
-                                                height: '100%',
-                                                borderRadius: '50%',
-                                                objectFit: 'cover'
-                                            }} />
-                                        ) : (
-                                            onlineUser.name?.charAt(0).toUpperCase()
-                                        )}
-                                        <div className="online-indicator" style={{
-                                            position: 'absolute',
-                                            bottom: '-2px',
-                                            right: '-2px',
-                                            width: '12px',
-                                            height: '12px',
-                                            background: '#25d366',
+                                        <div className="member-avatar-small" style={{
+                                            width: '28px',
+                                            height: '28px',
                                             borderRadius: '50%',
-                                            border: '2px solid white'
-                                        }}></div>
+                                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                            color: 'white',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            fontSize: '10px',
+                                            fontWeight: 'bold',
+                                            marginBottom: '2px',
+                                            position: 'relative'
+                                        }}>
+                                            {member.name?.charAt(0).toUpperCase()}
+                                            {isOnline && (
+                                                <div className="online-indicator-small" style={{
+                                                    position: 'absolute',
+                                                    bottom: '-1px',
+                                                    right: '-1px',
+                                                    width: '8px',
+                                                    height: '8px',
+                                                    background: '#25d366',
+                                                    borderRadius: '50%',
+                                                    border: '1px solid white'
+                                                }}></div>
+                                            )}
+                                        </div>
+                                        <span className="member-name-small" style={{
+                                            fontSize: '9px',
+                                            fontWeight: '500',
+                                            color: '#111b21',
+                                            textTransform: 'capitalize',
+                                            textAlign: 'center',
+                                            lineHeight: '1',
+                                            maxWidth: '45px',
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap'
+                                        }}>{member.name}</span>
                                     </div>
-                                    <span className="online-user-name" style={{
-                                        fontSize: '14px',
-                                        fontWeight: '500',
-                                        color: '#111b21',
-                                        textTransform: 'capitalize'
-                                    }}>{onlineUser.name}</span>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     ) : (
-                        <div className="no-online-users" style={{
+                        <div className="no-members" style={{
                             textAlign: 'center',
-                            padding: '20px',
+                            padding: '10px',
                             color: '#667781'
                         }}>
-                            <p style={{ margin: 0, fontSize: '14px' }}>No users online</p>
+                            <p style={{ margin: 0, fontSize: '12px' }}>No members found</p>
                         </div>
                     )}
                 </div>
@@ -317,7 +328,7 @@ const GroupChat = () => {
                 flex: 1, 
                 overflowY: 'auto', 
                 padding: '16px',
-                background: '#e5ddd5',
+                background: '#000',
                 backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'%3E%3Cpath d='m0 40l40-40h-40v40zm40 0v-40h-40l40 40z'/%3E%3C/g%3E%3C/svg%3E")`
             }}>
                 {messages.length === 0 ? (

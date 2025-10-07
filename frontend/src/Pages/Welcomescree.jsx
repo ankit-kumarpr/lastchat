@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import logo from '../images/gnet-logo.webp';
+import logo from '../images/gnet-logo.jpg';
 import robot from '../images/robot-icon.png';
 import welcome from '../images/welcome.jpg';
 import welcomeGif from '../images/wel.gif';

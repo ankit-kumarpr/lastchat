@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.css";
 import "./login.css";
 import axios from "axios";
-import logo from "../images/gnet-logo.webp";
+import logo from "../images/gnet-logo.jpg";
 import robot from "../images/robot-icon.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -33,6 +33,7 @@ const Login = () => {
     name: "",
     email: "",
     password: "",
+    gender: "",
   });
 
   const socialLinks = [
@@ -122,7 +123,7 @@ const Login = () => {
       if (response.data.message === "User registered successfully") {
         toast.success("Registration successful! Please login.");
         setIsLogin(true);
-        setRegisterForm({ name: "", email: "", password: "" });
+        setRegisterForm({ name: "", email: "", password: "", gender: "" });
       } else {
         toast.error(response.data.message || "Registration failed");
       }
@@ -235,6 +236,28 @@ const Login = () => {
                 className="form-input"
               />
             </div>
+            <div className="form-group">
+              <select
+                name="gender"
+                value={registerForm.gender}
+                onChange={(e) => handleInputChange(e, "register")}
+                required
+                className="form-input"
+                style={{ 
+                  padding: '12px 16px',
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  backgroundColor: '#fff',
+                  color: '#333'
+                }}
+              >
+                <option value="">Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
             <div className="form-group password-group">
               <input
                 type={showPassword ? "text" : "password"}
@@ -259,6 +282,7 @@ const Login = () => {
                 isLoading ||
                 !registerForm.name ||
                 !registerForm.email ||
+                !registerForm.gender ||
                 !registerForm.password
               }
             >

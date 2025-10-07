@@ -56,11 +56,20 @@ const hadnlelogout=()=>{
   }, [location.pathname]);
 
   const renderFooter = () => {
+    // Don't show footer on chat screens
+    if (location.pathname.includes('/group-chat/') || location.pathname.includes('/onetoone-livechat/')) {
+      return null;
+    }
+
     switch(loginuserRole) {
       case 'superadmin':
         return (
           <footer className="app-footer">
             <div className="footer-container">
+            <Link to="/create-group" className="footer-btn">
+                <img src={RoomIcon} alt="Rooms" className="footer-icon" />
+                <div className="footer-label">Rooms</div>
+              </Link>
               <Link to="/profile" className="footer-btn">
                 <img src={UserIcon} alt="User" className="footer-icon" />
                 <div className="footer-label">Me</div>
@@ -83,6 +92,10 @@ const hadnlelogout=()=>{
         return (
           <footer className="app-footer">
             <div className="footer-container">
+            <Link to="/create-group" className="footer-btn">
+                <img src={RoomIcon} alt="Rooms" className="footer-icon" />
+                <div className="footer-label">Rooms</div>
+              </Link>
               <Link to="/profile" className="footer-btn">
                 <img src={UserIcon} alt="Me" className="footer-icon" />
                 <div className="footer-label">Me</div>
@@ -106,20 +119,22 @@ const hadnlelogout=()=>{
         return (
           <footer className="app-footer">
             <div className="footer-container">
+            <Link to="/user-dashboard" className="footer-btn">
+                <img src={RoomIcon} alt="Rooms" className="footer-icon" />
+                <div className="footer-label">Rooms</div>
+              </Link>
+              <Link to="/onetoone-chat/general" className="footer-btn">
+                <img src={messageIcon} alt="Messages" className="footer-icon" />
+                <div className="footer-label">Messages</div>
+              </Link>
               <Link to="/profile" className="footer-btn">
                 <img src={UserIcon} alt="Me" className="footer-icon" />
                 <div className="footer-label">Me</div>
               </Link>
               
-              <Link to="/user-dashboard" className="footer-btn">
-                <img src={RoomIcon} alt="Rooms" className="footer-icon" />
-                <div className="footer-label">Rooms</div>
-              </Link>
+            
               
-              <Link to="/onetoone-chat/general" className="footer-btn">
-                <img src={messageIcon} alt="Messages" className="footer-icon" />
-                <div className="footer-label">Messages</div>
-              </Link>
+              
             </div>
           </footer>
         );

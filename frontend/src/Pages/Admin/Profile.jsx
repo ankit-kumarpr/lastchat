@@ -14,6 +14,7 @@ const Profile = () => {
   const [editData, setEditData] = useState({
     name: "",
     phone: "",
+    gender: "",
     dob: ""
   });
   const [selectedFile, setSelectedFile] = useState(null);
@@ -52,6 +53,7 @@ const Profile = () => {
       const response = await axios.get(url, { headers });
       console.log("response of api", response.data);
       console.log("User avatar:", response.data.user?.avatar);
+      console.log("User gender:", response.data.user?.gender);
       setProfile(response.data.user);
       // Reset image loaded state for new avatar
       setTimeout(() => {
@@ -60,7 +62,8 @@ const Profile = () => {
       setEditData({
         name: response.data.user.name || "",
         phone: response.data.user.phone || "",
-        dob: response.data.user.dob || ""
+        gender: response.data.user.gender || "",
+        dob: response.data.user.dob ? new Date(response.data.user.dob).toISOString().split('T')[0] : ""
       });
     } catch (error) {
       console.log(error);
@@ -207,6 +210,9 @@ const Profile = () => {
       if (editData.phone && editData.phone.trim()) {
         formData.append('phone', editData.phone.trim());
       }
+      if (editData.gender && editData.gender.trim()) {
+        formData.append('gender', editData.gender.trim());
+      }
       if (editData.dob && editData.dob.trim()) {
         formData.append('dob', editData.dob.trim());
       }
@@ -230,9 +236,19 @@ const Profile = () => {
       
       const response = await axios.put(url, formData, { headers });
       console.log('Profile update response:', response.data);
+      console.log('Updated user gender:', response.data.user?.gender);
       
       // Update profile state with new data
       setProfile(response.data.user);
+      
+      // Update editData with new values
+      setEditData({
+        name: response.data.user.name || "",
+        phone: response.data.user.phone || "",
+        gender: response.data.user.gender || "",
+        dob: response.data.user.dob ? new Date(response.data.user.dob).toISOString().split('T')[0] : ""
+      });
+      
       setIsEditing(false);
       setSelectedFile(null);
       setPreviewUrl(null);
@@ -557,6 +573,25 @@ const Profile = () => {
           </div>
 
           <div className="info-item">
+            <span className="info-label">Gender</span>
+            {isEditing ? (
+              <select
+                name="gender"
+                value={editData.gender}
+                onChange={handleInputChange}
+                className="edit-input"
+              >
+                <option value="">Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            ) : (
+              <span className="info-value">{profile?.gender ? profile.gender.charAt(0).toUpperCase() + profile.gender.slice(1) : "Not set"}</span>
+            )}
+          </div>
+
+          <div className="info-item">
             <span className="info-label">Date of Birth</span>
             {isEditing ? (
               <input
@@ -567,7 +602,13 @@ const Profile = () => {
                 className="edit-input"
               />
             ) : (
-              <span className="info-value">{profile?.dob || "Not set"}</span>
+              <span className="info-value">
+                {profile?.dob ? new Date(profile.dob).toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: '2-digit', 
+                  year: 'numeric'
+                }) : "Not set"}
+              </span>
             )}
           </div>
 

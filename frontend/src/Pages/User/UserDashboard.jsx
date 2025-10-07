@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaUsers, FaSearch, FaTimes, FaUserCircle, FaPlus, FaTimesCircle } from 'react-icons/fa';
 import Base_url from '../config';
-import logo from '../../images/Infun-logo.png'; 
+import logo from '../../images/gnet-logo.jpg'; 
 // import robot from '.'
 import './user.css';
 
