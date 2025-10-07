@@ -10,7 +10,7 @@ exports.protect = async (req, res, next) => {
     if (!token) return res.status(401).json({ message: 'Not authorized, token missing' });
 
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = await User.findById(decoded.id).select('-password');
+    const user = await User.findById(decoded.id).select('name email phone gender role customerId avatar dob createdAt banned');
     if (!user) return res.status(401).json({ message: 'Not authorized' });
     if (user.banned) return res.status(403).json({ message: 'Your account is banned' });
 

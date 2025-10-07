@@ -16,4 +16,7 @@ router.get('/profile/:userId', protect, userController.getUserProfile);
 // update profile with avatar upload
 router.put('/me', protect, upload.single('avatar'), userController.updateProfile);
 
+// migration endpoint to add gender field
+router.post('/migrate-gender', protect, userController.migrateGenderField);
+
 module.exports = router;
