@@ -4,8 +4,8 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true, lowercase: true },
   password: { type: String, required: true },
-  phone: { type: String, default: '' }, // Phone number field
-  gender: { type: String, enum: ['male', 'female', 'other'], default: '' }, // Gender field
+  phone: { type: String, default: "0000000000" }, // Phone number field
+  gender: { type: String, enum: ['male', 'female', 'other'] }, // Gender field
   role: { type: String, enum: ['user','admin'], default: 'user' },
   customerId: { type: String, unique: true }, // 12 digit
   avatar: { type: String }, // image path

@@ -8,6 +8,7 @@ import Base_url from '../config';
 import './GroupChat.css';
 import './OnetoOnechat.css';
 import './OnetoOneliveChat.css';
+// import '../../../'
 
 const GroupChat = () => {
     const { groupId } = useParams();
@@ -24,8 +25,11 @@ const GroupChat = () => {
     const [error, setError] = useState(null);
     const [sendingMessage, setSendingMessage] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [showVideo, setShowVideo] = useState(true);
+    const [videoError, setVideoError] = useState(false);
     const messagesEndRef = useRef();
     const messagesContainerRef = useRef();
+    const videoRef = useRef();
 
     useEffect(() => {
         if (!token || !userId || !groupId) {
@@ -45,7 +49,6 @@ const GroupChat = () => {
                 setLoading(true);
                 console.log('Fetching data for groupId:', groupId);
                 
-                // First, try to join the room to ensure user is a participant
                 try {
                     await axios.post(`${Base_url}/rooms/join/${groupId}`, {}, {
                         headers: { Authorization: `Bearer ${token}` }
@@ -72,7 +75,6 @@ const GroupChat = () => {
                 setMessages(messagesRes.data || []);
                 setLoading(false);
 
-                // Set user ID for socket and join group
                 newSocket.emit('setUserId', userId);
                 newSocket.emit('userOnline', userId);
                 newSocket.emit('joinGroup', groupId);
@@ -85,7 +87,6 @@ const GroupChat = () => {
 
         fetchData();
 
-        // Socket event listeners
         newSocket.on('receiveMessage', (message) => {
             console.log('📩 New message received:', message);
             setMessages((prevMessages) => [...prevMessages, message]);
@@ -117,6 +118,14 @@ const GroupChat = () => {
         scrollToBottom();
     }, [messages]);
 
+    useEffect(() => {
+        const videoTimer = setTimeout(() => {
+            setShowVideo(false);
+        }, 5000);
+
+        return () => clearTimeout(videoTimer);
+    }, []);
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
@@ -131,7 +140,6 @@ const GroupChat = () => {
 
         try {
             setSendingMessage(true);
-
             console.log('Sending message:', { groupId, userId, content: newMessage });
 
             socket.emit('sendMessage', {
@@ -150,10 +158,28 @@ const GroupChat = () => {
         }
     };
 
-
     const handleEmojiClick = (emojiData) => {
         setNewMessage(prev => prev + emojiData.emoji);
         setShowEmojiPicker(false);
+    };
+
+    const handleVideoEnd = () => {
+        setShowVideo(false);
+    };
+
+    const handleVideoError = () => {
+        console.error('Video failed to load');
+        setVideoError(true);
+        setShowVideo(false);
+    };
+
+    const handleVideoLoad = () => {
+        console.log('Video loaded successfully');
+        setVideoError(false);
+    };
+
+    const handleSkipVideo = () => {
+        setShowVideo(false);
     };
 
     if (loading) {
@@ -184,6 +210,98 @@ const GroupChat = () => {
 
     return (
         <div className="onetoone-container">
+            {/* Video Overlay - Multiple Video Sources for Compatibility */}
+            {showVideo && (
+                <div className="video-overlay" style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'black',
+                    zIndex: 9999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    {/* Try multiple video sources */}
+                    <video
+                        ref={videoRef}
+                        autoPlay
+                        muted
+                        playsInline
+                        onEnded={handleVideoEnd}
+                        onError={handleVideoError}
+                        onLoadedData={handleVideoLoad}
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                        }}
+                    >
+                        {/* Try multiple paths */}
+                        <source src="../../../videos/group-chat-intro.mp4" type="video/mp4" />
+                        {/* <source src="./videos/group-chat-intro.mp4" type="video/mp4" />
+                        <source src="videos/group-chat-intro.mp4" type="video/mp4" /> */}
+                        {/* <source src="https://assets.codepen.io/3364143/7btrrd.mp4" type="video/mp4" /> */}
+                        
+                        {/* Fallback content if video doesn't load */}
+                        <div style={{
+                            color: 'white',
+                            textAlign: 'center',
+                            padding: '20px'
+                        }}>
+                            <h3>Welcome to Group Chat!</h3>
+                            <p>Video not available</p>
+                        </div>
+                    </video>
+                    
+                    {/* Skip button */}
+                    <button 
+                        onClick={handleSkipVideo}
+                        style={{
+                            position: 'absolute',
+                            top: '20px',
+                            right: '20px',
+                            background: 'rgba(0,0,0,0.7)',
+                            color: 'white',
+                            border: '2px solid white',
+                            padding: '10px 20px',
+                            borderRadius: '25px',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            zIndex: 10000,
+                            transition: 'all 0.3s ease'
+                        }}
+                        onMouseOver={(e) => {
+                            e.target.style.background = 'rgba(255,255,255,0.2)';
+                        }}
+                        onMouseOut={(e) => {
+                            e.target.style.background = 'rgba(0,0,0,0.7)';
+                        }}
+                    >
+                        Skip ›
+                    </button>
+
+                    {/* Loading indicator */}
+                    {!videoError && (
+                        <div style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            color: 'white',
+                            fontSize: '16px',
+                            zIndex: 10001
+                        }}>
+                            Loading video...
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Rest of your chat component remains exactly the same */}
             {/* Chat Header */}
             <div className="onetoone-header">
                 <button className="back-button" onClick={() => navigate(-1)}>
@@ -197,7 +315,7 @@ const GroupChat = () => {
                 </div>
                 <div className="header-info">
                     <h2>{group?.name}</h2>
-                    <p>{group?.users?.length || 0} members</p>
+                    <p className="room-id">ID: {group?.roomId || groupId}</p>
                 </div>
                 <button 
                     className="members-toggle"
@@ -226,83 +344,87 @@ const GroupChat = () => {
                 <div className="members-panel" style={{
                     background: '#f0f2f5',
                     borderBottom: '1px solid #e9ecef',
-                    padding: '8px 16px',
-                    height: '80px',
+                    padding: '16px',
+                    height: '120px',
                     overflowX: 'auto',
                     overflowY: 'hidden'
                 }}>
                     <div className="members-header" style={{
-                        marginBottom: '8px'
+                        marginBottom: '12px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
                     }}>
                         <h3 style={{
                             margin: 0,
-                            fontSize: '12px',
+                            fontSize: '14px',
                             fontWeight: '600',
                             color: '#075e54'
-                        }}>All Members ({group?.users?.length || 0})</h3>
+                        }}>Group Members</h3>
+                        <span style={{
+                            fontSize: '12px',
+                            color: '#667781'
+                        }}>{(group?.participants?.length || group?.users?.length || 0)} members</span>
                     </div>
-                    {/* Show all group members in horizontal slider */}
-                    {group?.users && group.users.length > 0 ? (
+                    {(group?.participants || group?.users) && (group.participants || group.users).length > 0 ? (
                         <div className="members-slider" style={{
                             display: 'flex',
-                            gap: '8px',
-                            alignItems: 'center',
-                            height: '50px',
+                            gap: '16px',
+                            alignItems: 'flex-start',
+                            height: '70px',
                             overflowX: 'auto',
                             overflowY: 'hidden',
-                            paddingBottom: '4px'
+                            paddingBottom: '8px'
                         }}>
-                            {group.users.map((member) => {
+                            {(group.participants || group.users).map((member) => {
                                 const isOnline = onlineUsers.some(onlineUser => onlineUser._id === member._id);
                                 return (
                                     <div key={member._id} className="member-slide" style={{
                                         display: 'flex',
                                         flexDirection: 'column',
                                         alignItems: 'center',
-                                        minWidth: '50px',
+                                        minWidth: '60px',
                                         padding: '4px',
-                                        background: 'white',
-                                        borderRadius: '8px',
-                                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
                                         cursor: 'pointer',
                                         transition: 'transform 0.2s'
                                     }}>
-                                        <div className="member-avatar-small" style={{
-                                            width: '28px',
-                                            height: '28px',
+                                        <div className="member-avatar" style={{
+                                            width: '50px',
+                                            height: '50px',
                                             borderRadius: '50%',
                                             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                                             color: 'white',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            fontSize: '10px',
+                                            fontSize: '16px',
                                             fontWeight: 'bold',
-                                            marginBottom: '2px',
-                                            position: 'relative'
+                                            marginBottom: '6px',
+                                            position: 'relative',
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                                         }}>
                                             {member.name?.charAt(0).toUpperCase()}
                                             {isOnline && (
-                                                <div className="online-indicator-small" style={{
+                                                <div className="online-indicator" style={{
                                                     position: 'absolute',
-                                                    bottom: '-1px',
-                                                    right: '-1px',
-                                                    width: '8px',
-                                                    height: '8px',
+                                                    bottom: '2px',
+                                                    right: '2px',
+                                                    width: '12px',
+                                                    height: '12px',
                                                     background: '#25d366',
                                                     borderRadius: '50%',
-                                                    border: '1px solid white'
+                                                    border: '2px solid white'
                                                 }}></div>
                                             )}
                                         </div>
-                                        <span className="member-name-small" style={{
-                                            fontSize: '9px',
+                                        <span className="member-name" style={{
+                                            fontSize: '11px',
                                             fontWeight: '500',
                                             color: '#111b21',
                                             textTransform: 'capitalize',
                                             textAlign: 'center',
-                                            lineHeight: '1',
-                                            maxWidth: '45px',
+                                            lineHeight: '1.2',
+                                            maxWidth: '55px',
                                             overflow: 'hidden',
                                             textOverflow: 'ellipsis',
                                             whiteSpace: 'nowrap'
@@ -314,22 +436,22 @@ const GroupChat = () => {
                     ) : (
                         <div className="no-members" style={{
                             textAlign: 'center',
-                            padding: '10px',
+                            padding: '20px',
                             color: '#667781'
                         }}>
-                            <p style={{ margin: 0, fontSize: '12px' }}>No members found</p>
+                            <p style={{ margin: 0, fontSize: '14px' }}>No members found</p>
                         </div>
                     )}
                 </div>
             )}
 
-            {/* Messages */}
+            {/* Messages Container */}
             <div className="messages-container" ref={messagesContainerRef} style={{ 
                 flex: 1, 
                 overflowY: 'auto', 
                 padding: '16px',
-                background: '#000',
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'%3E%3Cpath d='m0 40l40-40h-40v40zm40 0v-40h-40l40 40z'/%3E%3C/g%3E%3C/svg%3E")`
+                background: '#efeae2',
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239C92AC' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E")`
             }}>
                 {messages.length === 0 ? (
                     <div className="no-messages" style={{
@@ -353,14 +475,14 @@ const GroupChat = () => {
                                 style={{
                                     display: 'flex',
                                     marginBottom: '8px',
-                                    justifyContent: String(message.sender._id) === userId ? 'flex-end' : 'flex-start'
+                                    justifyContent: String(message.sender._id) === userId ? 'flex-end' : 'flex-start',
+                                    alignItems: 'flex-end'
                                 }}
                             >
-                                {/* Show sender avatar for received messages in group chat */}
                                 {String(message.sender._id) !== userId && (
                                     <div className="sender-avatar" style={{
-                                        width: '32px',
-                                        height: '32px',
+                                        width: '28px',
+                                        height: '28px',
                                         borderRadius: '50%',
                                         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                                         color: 'white',
@@ -370,7 +492,7 @@ const GroupChat = () => {
                                         fontSize: '12px',
                                         fontWeight: 'bold',
                                         marginRight: '8px',
-                                        alignSelf: 'flex-end'
+                                        flexShrink: 0
                                     }}>
                                         {message.sender.name.charAt(0).toUpperCase()}
                                     </div>
@@ -381,16 +503,15 @@ const GroupChat = () => {
                                     style={{
                                         maxWidth: '70%',
                                         padding: '8px 12px',
-                                        borderRadius: '18px',
+                                        borderRadius: '7.5px',
                                         background: String(message.sender._id) === userId ? '#dcf8c6' : '#ffffff',
-                                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                                        boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)',
                                         position: 'relative'
                                     }}
                                 >
-                                    {/* Show sender name for received messages in group chat */}
                                     {String(message.sender._id) !== userId && (
                                         <span className="sender-name" style={{ 
-                                            fontSize: '12px',
+                                            fontSize: '13px',
                                             fontWeight: '600',
                                             color: '#075e54',
                                             textTransform: 'capitalize',
@@ -435,20 +556,32 @@ const GroupChat = () => {
                                             )}
                                         </div>
                                     )}
-                                    <span 
-                                        className="message-time"
-                                        style={{
-                                            fontSize: '11px',
-                                            color: '#667781',
-                                            float: 'right',
-                                            marginTop: '2px'
-                                        }}
-                                    >
-                                        {new Date(message.createdAt).toLocaleTimeString([], { 
-                                            hour: '2-digit', 
-                                            minute: '2-digit' 
-                                        })}
-                                    </span>
+                                    <div style={{
+                                        display: 'flex',
+                                        justifyContent: 'flex-end',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                    }}>
+                                        <span 
+                                            className="message-time"
+                                            style={{
+                                                fontSize: '11px',
+                                                color: '#667781',
+                                                marginTop: '2px'
+                                            }}
+                                        >
+                                            {new Date(message.createdAt).toLocaleTimeString([], { 
+                                                hour: '2-digit', 
+                                                minute: '2-digit' 
+                                            })}
+                                        </span>
+                                        {String(message.sender._id) === userId && (
+                                            <span style={{
+                                                fontSize: '10px',
+                                                color: '#667781'
+                                            }}>✓✓</span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -467,7 +600,6 @@ const GroupChat = () => {
                     borderTop: '1px solid #e9ecef'
                 }}
             >
-                {/* Emoji Picker */}
                 {showEmojiPicker && (
                     <div className="emoji-picker-container" style={{
                         position: 'absolute',
@@ -513,7 +645,7 @@ const GroupChat = () => {
                         gap: '8px',
                         background: 'white',
                         borderRadius: '24px',
-                        padding: '4px'
+                        padding: '4px 8px'
                     }}
                 >
                     <button 
@@ -532,7 +664,7 @@ const GroupChat = () => {
                             color: '#8696a0'
                         }}
                     >
-                        <FaSmile className="emoji-icon" />
+                        <FaSmile size={20} />
                     </button>
                     
                     <input
@@ -545,10 +677,28 @@ const GroupChat = () => {
                             border: 'none',
                             outline: 'none',
                             padding: '8px 12px',
-                            fontSize: '14px',
+                            fontSize: '15px',
                             background: 'transparent'
                         }}
                     />
+                    
+                    <button 
+                        type="button"
+                        style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '8px',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#8696a0'
+                        }}
+                    >
+                        <FaImage size={20} />
+                    </button>
+                    
                     <button 
                         type="submit" 
                         disabled={!newMessage.trim() || sendingMessage}
@@ -556,7 +706,7 @@ const GroupChat = () => {
                             background: newMessage.trim() ? '#075e54' : '#8696a0',
                             border: 'none',
                             cursor: newMessage.trim() ? 'pointer' : 'not-allowed',
-                            padding: '8px',
+                            padding: '10px',
                             borderRadius: '50%',
                             display: 'flex',
                             alignItems: 'center',
@@ -578,7 +728,7 @@ const GroupChat = () => {
                                 }}
                             ></div>
                         ) : (
-                            <FaPaperPlane className="send-icon" />
+                            <FaPaperPlane size={16} />
                         )}
                     </button>
                 </div>

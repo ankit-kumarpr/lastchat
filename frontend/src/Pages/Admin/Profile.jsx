@@ -479,29 +479,60 @@ const Profile = () => {
             >
               {getInitials(profile?.name)}
             </span>
-          </div>
-          <button 
-            className="camera-button" 
-            onClick={handleCameraClick}
-            disabled={uploadingPhoto}
-            style={{
-              opacity: uploadingPhoto ? 0.6 : 1,
-              cursor: uploadingPhoto ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {uploadingPhoto ? (
-              <div className="upload-spinner" style={{
-                width: '14px',
-                height: '14px',
-                border: '2px solid rgba(255,255,255,0.3)',
+            
+            {/* Camera Icon - Always Visible on Top */}
+            <button 
+              className="camera-button" 
+              onClick={handleCameraClick}
+              disabled={uploadingPhoto}
+              style={{
+                position: 'absolute',
+                bottom: '5px',
+                right: '5px',
+                width: '36px',
+                height: '36px',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: '3px solid white',
                 borderRadius: '50%',
-                borderTopColor: 'white',
-                animation: 'spin 1s linear infinite'
-              }}></div>
-            ) : (
-              <FaCamera size={14} />
-            )}
-          </button>
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: uploadingPhoto ? 'not-allowed' : 'pointer',
+                color: 'white',
+                fontSize: '14px',
+                zIndex: 3,
+                opacity: uploadingPhoto ? 0.6 : 1,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => {
+                if (!uploadingPhoto) {
+                  e.target.style.transform = 'scale(1.1)';
+                  e.target.style.background = 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)';
+                }
+              }}
+              onMouseOut={(e) => {
+                if (!uploadingPhoto) {
+                  e.target.style.transform = 'scale(1)';
+                  e.target.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                }
+              }}
+            >
+              {uploadingPhoto ? (
+                <div className="upload-spinner" style={{
+                  width: '14px',
+                  height: '14px',
+                  border: '2px solid rgba(255,255,255,0.3)',
+                  borderRadius: '50%',
+                  borderTopColor: 'white',
+                  animation: 'spin 1s linear infinite'
+                }}></div>
+              ) : (
+                <FaCamera size={14} />
+              )}
+            </button>
+          </div>
+          
           <input
             id="avatar-input"
             type="file"
@@ -517,12 +548,7 @@ const Profile = () => {
           <p className="profile-id">ID: {profile?.customerId || 'N/A'}</p>
         </div>
 
-        
-
         <div className="profile-actions">
-          <button className="chat-button">
-            <FaComments /> Chat
-          </button>
           <button className="report-button" onClick={handleReportClick}>
             <FaExclamationTriangle /> Report
           </button>
@@ -624,31 +650,6 @@ const Profile = () => {
           </button>
         )}
       </div>
-
-      {/* Rooms Section */}
-      {/* <div className="profile-rooms-section">
-        <div className="section-header">
-          <h3>Rooms</h3>
-        </div>
-        
-        <div className="rooms-stats">
-          <div className="room-stat">
-            <FaDoorOpen className="room-stat-icon" />
-            <div className="room-stat-content">
-              <span className="room-stat-number">14</span>
-              <span className="room-stat-label">Joined Rooms</span>
-            </div>
-          </div>
-          
-          <div className="room-stat">
-            <FaHeart className="room-stat-icon" />
-            <div className="room-stat-content">
-              <span className="room-stat-number">206</span>
-              <span className="room-stat-label">Followed Rooms</span>
-            </div>
-          </div>
-        </div>
-      </div> */}
 
       {/* Report Modal */}
       {showReportModal && (

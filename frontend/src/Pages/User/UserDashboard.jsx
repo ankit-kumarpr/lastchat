@@ -1,10 +1,9 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaUsers, FaSearch, FaTimes, FaUserCircle, FaPlus, FaTimesCircle } from 'react-icons/fa';
+import { FaUsers, FaSearch, FaTimes, FaUserCircle, FaPlus, FaTimesCircle, FaRupeeSign, FaLock } from 'react-icons/fa';
 import Base_url from '../config';
 import logo from '../../images/gnet-logo.jpg'; 
-// import robot from '.'
 import './user.css';
 
 const UserDashboard = () => {
@@ -17,6 +16,7 @@ const UserDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [userProfile, setUserProfile] = useState(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [createRoomData, setCreateRoomData] = useState({
         name: '',
         roomId: ''
@@ -25,8 +25,6 @@ const UserDashboard = () => {
 
     useEffect(() => {
         getRooms();
-        // In a real app, you would fetch user profile from API
-        // For now, we'll just use the first letter of the username
     }, []);
 
     const getRooms = async () => {
@@ -52,6 +50,15 @@ const UserDashboard = () => {
         navigate(`/group-chat/${roomId}`);
     };
 
+    const handleCreateRoomClick = () => {
+        setShowPaymentModal(true);
+    };
+
+    const handleProceedToPayment = () => {
+        setShowPaymentModal(false);
+        setShowCreateModal(true);
+    };
+
     const handleCreateRoom = async () => {
         if (!createRoomData.name.trim()) {
             alert('Please enter a room name');
@@ -68,17 +75,14 @@ const UserDashboard = () => {
 
             const requestBody = {
                 name: createRoomData.name.trim(),
-                roomId: createRoomData.roomId.trim() || undefined // Let backend generate if empty
+                roomId: createRoomData.roomId.trim() || undefined
             };
 
             const response = await axios.post(url, requestBody, { headers });
             console.log("Room created:", response.data);
             
-            // Reset form and close modal
             setCreateRoomData({ name: '', roomId: '' });
             setShowCreateModal(false);
-            
-            // Refresh rooms list
             await getRooms();
             
             alert('Room created successfully!');
@@ -103,7 +107,6 @@ const UserDashboard = () => {
         room._id?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    // Get first letter of username for avatar
     const getAvatarLetter = () => {
         return userName.charAt(0).toUpperCase();
     };
@@ -125,10 +128,6 @@ const UserDashboard = () => {
                     </div>
                 </div>
             </div>
-
-            {/* Welcome Message */}
-            
-
 
             {/* Search */}
             <div className="search-container">
@@ -157,7 +156,7 @@ const UserDashboard = () => {
                         <h3>Available Rooms ({filteredRooms.length})</h3>
                         <button 
                             className="create-room-btn-small"
-                            onClick={() => setShowCreateModal(true)}
+                            onClick={handleCreateRoomClick}
                             title="Create Room"
                         >
                             <FaPlus />
@@ -187,6 +186,55 @@ const UserDashboard = () => {
                             <p>No rooms found</p>
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Small Payment Modal for Mobile */}
+            {showPaymentModal && (
+                <div className="modal-overlay">
+                  <div className="small-payment-modal">
+    <div className="small-modal-header">
+        <h4>To Create a Room</h4>
+        <button 
+            className="close-small-modal"
+            onClick={() => setShowPaymentModal(false)}
+        >
+            <FaTimes size={16} />
+        </button>
+    </div>
+    
+    <div className="small-modal-body">
+        <div className="qr-code-placeholder">
+            {/* Add your scanner/image here */}
+            <div className="qr-image">
+                [Scanner Image]
+            </div>
+            <div className="payment-note">
+                Pay ₹99
+            </div>
+        </div>
+        
+        <div className="small-note">
+            You can create a room only after completing the payment.
+        </div>
+    </div>
+    
+    <div className="small-modal-footer">
+        <button 
+            className="small-cancel-btn"
+            onClick={() => setShowPaymentModal(false)}
+        >
+            Cancel
+        </button>
+        <button 
+            className="small-proceed-btn"
+            onClick={handleProceedToPayment}
+        >
+            Paid, Continue
+        </button>
+    </div>
+</div>
+
                 </div>
             )}
 

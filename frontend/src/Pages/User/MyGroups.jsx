@@ -27,17 +27,10 @@ const MyGroups = () => {
                 Authorization: `Bearer ${token}`
             };
             const response = await axios.get(url, { headers });
-            // Map rooms to groups format for compatibility
-            const roomsAsGroups = (response.data.rooms || []).map(room => ({
-                _id: room._id,
-                name: room.name,
-                users: room.participants || [],
-                createdAt: room.createdAt,
-                createdBy: room.createdBy
-            }));
-            setGroups(roomsAsGroups);
+            console.log('API Response:', response.data);
+            setGroups(response.data.rooms || []);
         } catch (error) {
-            console.log(error);
+            console.log('Error fetching groups:', error);
         } finally {
             setLoading(false);
         }
@@ -48,7 +41,8 @@ const MyGroups = () => {
     };
 
     const filteredGroups = groups.filter(group =>
-        group.name?.toLowerCase().includes(searchTerm.toLowerCase())
+        group.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        group.roomId?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const formatDate = (dateString) => {
@@ -57,8 +51,8 @@ const MyGroups = () => {
     };
 
     const handleJoinChat = (groupId) => {
-       console.log("Joining group chat with ID:", groupId);
-navigate(`/group-chat/${groupId}`);
+        console.log("Joining group chat with ID:", groupId);
+        navigate(`/group-chat/${groupId}`);
     };
 
     return (
@@ -112,7 +106,7 @@ navigate(`/group-chat/${groupId}`);
                                             <div className="group-name-row">
                                                 <span className="group-name">{group.name}</span>
                                                 <span className="member-count">
-                                                    {group.users?.length || 0} members
+                                                    {group.participants?.length || 0} members
                                                     {expandedGroup === group._id ? (
                                                         <FaChevronUp className="expand-icon" />
                                                     ) : (
@@ -121,6 +115,7 @@ navigate(`/group-chat/${groupId}`);
                                                 </span>
                                             </div>
                                             <div className="group-meta">
+                                                <span className="room-id-display">ID: {group.roomId}</span>
                                                 <span className="created-date">Created: {formatDate(group.createdAt)}</span>
                                             </div>
                                         </div>
@@ -136,16 +131,16 @@ navigate(`/group-chat/${groupId}`);
                                                     <FaComments /> Join Chat
                                                 </button>
                                             </div>
-                                            <h4>Members</h4>
+                                            <h4>Members ({group.participants?.length || 0})</h4>
                                             <ul className="members-list">
-                                                {group.users?.map((user) => (
+                                                {group.participants?.map((user) => (
                                                     <li key={user._id} className="member-item">
                                                         <div className="member-avatar">
                                                             {user.name?.charAt(0).toUpperCase()}
                                                         </div>
                                                         <div className="member-info">
                                                             <span className="member-name">{user.name}</span>
-                                                            <span className="member-id">{user.specialId || 'No ID'}</span>
+                                                            <span className="member-email">{user.email}</span>
                                                         </div>
                                                         <div className={`member-role ${user.role}`}>
                                                             {user.role}

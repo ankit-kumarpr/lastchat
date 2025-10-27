@@ -9,10 +9,6 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import {
   FaGoogle,
-  FaFacebook,
-  FaInstagram,
-  FaYoutube,
-  FaGlobe,
   FaEye,
   FaEyeSlash,
 } from "react-icons/fa";
@@ -33,7 +29,6 @@ const Login = () => {
     name: "",
     email: "",
     password: "",
-    gender: "",
   });
 
   const socialLinks = [
@@ -112,7 +107,7 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const url = `https://lastchat-o1as.onrender.com/api/auth/register`;
+      const url = `http://localhost:5500/api/auth/register`;
       const headers = {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -123,7 +118,7 @@ const Login = () => {
       if (response.data.message === "User registered successfully") {
         toast.success("Registration successful! Please login.");
         setIsLogin(true);
-        setRegisterForm({ name: "", email: "", password: "", gender: "" });
+        setRegisterForm({ name: "", email: "", password: "" });
       } else {
         toast.error(response.data.message || "Registration failed");
       }
@@ -147,7 +142,6 @@ const Login = () => {
 
       <div className="welcome-section">
         <h2 className="welcome-title">Welcome to Infun India</h2>
-        {/* <h3 className="welcome-subtitle">Chat System</h3> */}
       </div>
 
       <div className="auth-container">
@@ -236,28 +230,6 @@ const Login = () => {
                 className="form-input"
               />
             </div>
-            <div className="form-group">
-              <select
-                name="gender"
-                value={registerForm.gender}
-                onChange={(e) => handleInputChange(e, "register")}
-                required
-                className="form-input"
-                style={{ 
-                  padding: '12px 16px',
-                  border: '1px solid #ddd',
-                  borderRadius: '8px',
-                  fontSize: '16px',
-                  backgroundColor: '#fff',
-                  color: '#333'
-                }}
-              >
-                <option value="">Select Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
             <div className="form-group password-group">
               <input
                 type={showPassword ? "text" : "password"}
@@ -282,7 +254,6 @@ const Login = () => {
                 isLoading ||
                 !registerForm.name ||
                 !registerForm.email ||
-                !registerForm.gender ||
                 !registerForm.password
               }
             >
