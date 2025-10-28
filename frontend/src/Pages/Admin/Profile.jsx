@@ -4,6 +4,7 @@ import axios from "axios";
 import { FaUser, FaSignOutAlt, FaArrowLeft, FaCamera, FaEdit, FaUsers, FaUserPlus, FaUserCheck, FaComments, FaDoorOpen, FaHeart, FaExclamationTriangle, FaTimes } from "react-icons/fa";
 import "./profile.css";
 import Base_url from "../config";
+import verifyIcon from "../../images/verify.png";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -480,15 +481,15 @@ const Profile = () => {
               {getInitials(profile?.name)}
             </span>
             
-            {/* Camera Icon - Always Visible on Top */}
+            {/* Camera Icon - Half Hidden Behind Profile Picture */}
             <button 
               className="camera-button" 
               onClick={handleCameraClick}
               disabled={uploadingPhoto}
               style={{
                 position: 'absolute',
-                bottom: '5px',
-                right: '5px',
+                bottom: '0px',
+                right: '-10px',
                 width: '36px',
                 height: '36px',
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -500,9 +501,11 @@ const Profile = () => {
                 cursor: uploadingPhoto ? 'not-allowed' : 'pointer',
                 color: 'white',
                 fontSize: '14px',
-                zIndex: 3,
+                zIndex: (profile?.avatar && imageLoaded && !previewUrl) ? 0 : 3,
                 opacity: uploadingPhoto ? 0.6 : 1,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                boxShadow: (profile?.avatar && imageLoaded && !previewUrl) 
+                  ? 'none' 
+                  : '0 2px 8px rgba(0,0,0,0.3)',
                 transition: 'all 0.3s ease'
               }}
               onMouseOver={(e) => {
@@ -544,7 +547,20 @@ const Profile = () => {
         </div>
 
         <div className="profile-name-id">
-          <h2 className="profile-display-name">{profile?.name || "User"}</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
+            <h2 className="profile-display-name">{profile?.name || "User"}</h2>
+            {profile?.avatar && (
+              <img 
+                src={verifyIcon} 
+                alt="Verified" 
+                style={{ 
+                  width: '20px', 
+                  height: '20px',
+                  objectFit: 'contain'
+                }} 
+              />
+            )}
+          </div>
           <p className="profile-id">ID: {profile?.customerId || 'N/A'}</p>
         </div>
 

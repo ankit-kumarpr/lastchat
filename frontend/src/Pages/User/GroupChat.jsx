@@ -15,6 +15,7 @@ const GroupChat = () => {
     const navigate = useNavigate();
     const token = sessionStorage.getItem('accessToken');
     const userId = sessionStorage.getItem('userId');
+    const userRole = sessionStorage.getItem('userRole'); // Get user role
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [group, setGroup] = useState(null);
@@ -25,7 +26,7 @@ const GroupChat = () => {
     const [error, setError] = useState(null);
     const [sendingMessage, setSendingMessage] = useState(false);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-    const [showVideo, setShowVideo] = useState(true);
+    const [showVideo, setShowVideo] = useState(userRole === 'admin' || userRole === 'superadmin'); // Show video only for admin/superadmin
     const [videoError, setVideoError] = useState(false);
     const messagesEndRef = useRef();
     const messagesContainerRef = useRef();
@@ -119,12 +120,15 @@ const GroupChat = () => {
     }, [messages]);
 
     useEffect(() => {
-        const videoTimer = setTimeout(() => {
-            setShowVideo(false);
-        }, 5000);
+        // Only hide video after 5 seconds if user is admin/superadmin
+        if (userRole === 'admin' || userRole === 'superadmin') {
+            const videoTimer = setTimeout(() => {
+                setShowVideo(false);
+            }, 5000);
 
-        return () => clearTimeout(videoTimer);
-    }, []);
+            return () => clearTimeout(videoTimer);
+        }
+    }, [userRole]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -364,19 +368,22 @@ const GroupChat = () => {
                         <span style={{
                             fontSize: '12px',
                             color: '#667781'
-                        }}>{(group?.participants?.length || group?.users?.length || 0)} members</span>
+                        }}>
+                            {Array.from(new Map((group?.participants || group?.users || []).map(m => [m._id, m])).values()).length} members
+                        </span>
                     </div>
                     {(group?.participants || group?.users) && (group.participants || group.users).length > 0 ? (
                         <div className="members-slider" style={{
                             display: 'flex',
                             gap: '16px',
                             alignItems: 'flex-start',
-                            height: '70px',
+                            height: '79px',
                             overflowX: 'auto',
                             overflowY: 'hidden',
                             paddingBottom: '8px'
                         }}>
-                            {(group.participants || group.users).map((member) => {
+                            {/* Filter out duplicate users based on _id */}
+                            {Array.from(new Map((group.participants || group.users || []).map(m => [m._id, m])).values()).map((member) => {
                                 const isOnline = onlineUsers.some(onlineUser => onlineUser._id === member._id);
                                 return (
                                     <div key={member._id} className="member-slide" style={{
@@ -401,9 +408,26 @@ const GroupChat = () => {
                                             fontWeight: 'bold',
                                             marginBottom: '6px',
                                             position: 'relative',
-                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                            overflow: 'hidden'
                                         }}>
-                                            {member.name?.charAt(0).toUpperCase()}
+                                            {member.avatar ? (
+                                                <img 
+                                                    src={member.avatar.startsWith('http') ? member.avatar : `https://lastchat-o1as.onrender.com${member.avatar}`}
+                                                    alt={member.name}
+                                                    style={{
+                                                        width: '100%',
+                                                        height: '100%',
+                                                        objectFit: 'cover'
+                                                    }}
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none';
+                                                        e.target.parentElement.innerHTML = member.name?.charAt(0).toUpperCase() || 'U';
+                                                    }}
+                                                />
+                                            ) : (
+                                                member.name?.charAt(0).toUpperCase() || 'U'
+                                            )}
                                             {isOnline && (
                                                 <div className="online-indicator" style={{
                                                     position: 'absolute',
@@ -413,7 +437,8 @@ const GroupChat = () => {
                                                     height: '12px',
                                                     background: '#25d366',
                                                     borderRadius: '50%',
-                                                    border: '2px solid white'
+                                                    border: '2px solid white',
+                                                    zIndex: 1
                                                 }}></div>
                                             )}
                                         </div>
