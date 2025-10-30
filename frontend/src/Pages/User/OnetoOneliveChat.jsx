@@ -8,6 +8,12 @@ import Base_url from '../config';
 import './OnetoOnechat.css';
 import './OnetoOneliveChat.css';
 
+// Add the emoji wrapping utility function before the OnetoOneliveChat component
+function wrapEmojis(str) {
+  const emojiRegex = /([\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F980}-\u{1F9E0}\u{2600}-\u{26FF}\u{2300}-\u{23FF}])/gu;
+  return str.replace(emojiRegex, '<span class="chat-emoji">$1</span>');
+}
+
 const OnetoOneliveChat = () => {
     const { userId: receiverId } = useParams();
     const navigate = useNavigate();
@@ -136,6 +142,24 @@ const OnetoOneliveChat = () => {
         }
     };
 
+    useEffect(() => {
+        if (!receiverInfo && receiverId && token) {
+            (async () => {
+                try {
+                    const userRes = await axios.get(`${Base_url}/users/all`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    const receiver = userRes.data.users?.find(user => user._id === receiverId);
+                    if (receiver) {
+                        setReceiverInfo(receiver);
+                    }
+                } catch (userError) {
+                    console.error('Error fetching receiver info:', userError);
+                }
+            })();
+        }
+    }, [receiverId, token, receiverInfo]);
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
@@ -212,12 +236,24 @@ const OnetoOneliveChat = () => {
                     <FaArrowLeft size={20} />
                 </button>
                 <div className="user-avatar-container">
-                    <div className="user-avatar" style={{ width: '40px', height: '40px', fontSize: '16px' }}>
+                    <div className="user-avatar" style={{ width: '40px', height: '40px', fontSize: '16px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
                         {receiverInfo?.avatar ? (
-                            <img src={receiverInfo.avatar} alt={receiverInfo.name} />
-                        ) : (
-                            receiverInfo?.name?.charAt(0).toUpperCase() || <FaUser />
-                        )}
+                            <img
+                                src={receiverInfo.avatar.startsWith('http') ? receiverInfo.avatar : `https://lastchat-o1as.onrender.com${receiverInfo.avatar}`}
+                                alt={receiverInfo.name}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%', display: 'block' }}
+                                onError={e => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+                            />
+                        ) : null}
+                        <span
+                            style={{
+                                display: receiverInfo?.avatar ? 'none' : 'flex',
+                                position: 'absolute',
+                                top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center',
+                                fontSize: '20px', fontWeight: 'bold', color: 'white', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: '50%'}}
+                        >
+                            {receiverInfo?.name?.charAt(0)?.toUpperCase() || <FaUser />}
+                        </span>
                     </div>
                     <div className={`status-dot ${isReceiverOnline ? 'online' : 'offline'}`}></div>
                 </div>
@@ -232,8 +268,8 @@ const OnetoOneliveChat = () => {
                 flex: 1, 
                 overflowY: 'auto', 
                 padding: '16px',
-                background: '#000',
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.03' fill-rule='evenodd'%3E%3Cpath d='m0 40l40-40h-40v40zm40 0v-40h-40l40 40z'/%3E%3C/g%3E%3C/svg%3E")`
+                background: '#efeae2',
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 2 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239C92AC' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E")`,
             }}>
                 {messages.length === 0 ? (
                     <div className="no-messages" style={{
@@ -278,9 +314,8 @@ const OnetoOneliveChat = () => {
                                             lineHeight: '1.4',
                                             color: '#111b21',
                                             wordWrap: 'break-word'
-                                        }}>
-                                            {message.message}
-                                        </p>
+                                        }}
+                                        dangerouslySetInnerHTML={{ __html: wrapEmojis(message.message) }} />
                                     )}
                                     {message.file && (
                                         <div className="message-file" style={{ marginBottom: '4px' }}>

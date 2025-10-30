@@ -401,7 +401,12 @@ const Profile = () => {
       {/* Profile Header Section */}
       <div className="profile-header-section">
         <div className="profile-avatar-container">
-          <div className="profile-avatar-large" style={{ position: 'relative' }}>
+          <div 
+            className="profile-avatar-large" 
+            style={{ position: 'relative', cursor: uploadingPhoto ? 'not-allowed' : 'pointer' }}
+            onClick={uploadingPhoto ? undefined : handleCameraClick}
+            title={uploadingPhoto ? '' : 'Change profile photo'}
+          >
             {uploadingPhoto && (
               <div style={{
                 position: 'absolute',
@@ -480,60 +485,6 @@ const Profile = () => {
             >
               {getInitials(profile?.name)}
             </span>
-            
-            {/* Camera Icon - Half Hidden Behind Profile Picture */}
-            <button 
-              className="camera-button" 
-              onClick={handleCameraClick}
-              disabled={uploadingPhoto}
-              style={{
-                position: 'absolute',
-                bottom: '0px',
-                right: '-10px',
-                width: '36px',
-                height: '36px',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                border: '3px solid white',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: uploadingPhoto ? 'not-allowed' : 'pointer',
-                color: 'white',
-                fontSize: '14px',
-                zIndex: (profile?.avatar && imageLoaded && !previewUrl) ? 0 : 3,
-                opacity: uploadingPhoto ? 0.6 : 1,
-                boxShadow: (profile?.avatar && imageLoaded && !previewUrl) 
-                  ? 'none' 
-                  : '0 2px 8px rgba(0,0,0,0.3)',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseOver={(e) => {
-                if (!uploadingPhoto) {
-                  e.target.style.transform = 'scale(1.1)';
-                  e.target.style.background = 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)';
-                }
-              }}
-              onMouseOut={(e) => {
-                if (!uploadingPhoto) {
-                  e.target.style.transform = 'scale(1)';
-                  e.target.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-                }
-              }}
-            >
-              {uploadingPhoto ? (
-                <div className="upload-spinner" style={{
-                  width: '14px',
-                  height: '14px',
-                  border: '2px solid rgba(255,255,255,0.3)',
-                  borderRadius: '50%',
-                  borderTopColor: 'white',
-                  animation: 'spin 1s linear infinite'
-                }}></div>
-              ) : (
-                <FaCamera size={14} />
-              )}
-            </button>
           </div>
           
           <input
@@ -549,7 +500,7 @@ const Profile = () => {
         <div className="profile-name-id">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
             <h2 className="profile-display-name">{profile?.name || "User"}</h2>
-            {profile?.avatar && (
+            {profile?.avatar && profile?.role === "admin" && (
               <img 
                 src={verifyIcon} 
                 alt="Verified" 

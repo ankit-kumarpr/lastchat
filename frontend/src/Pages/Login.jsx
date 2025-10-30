@@ -107,7 +107,7 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const url = `https://lastchat-o1as.onrender.com/api/auth/register`;
+      const url = `http://localhost:5500/api/auth/register`;
       const headers = {
         "Content-Type": "application/json",
         Accept: "application/json",

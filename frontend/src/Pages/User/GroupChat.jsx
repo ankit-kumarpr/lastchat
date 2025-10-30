@@ -10,6 +10,12 @@ import './OnetoOnechat.css';
 import './OnetoOneliveChat.css';
 // import '../../../'
 
+function wrapEmojis(str) {
+    // This regex finds emoji code points
+    const emojiRegex = /([\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F980}-\u{1F9E0}\u{2600}-\u{26FF}\u{2300}-\u{23FF}])/gu;
+    return str.replace(emojiRegex, '<span class="chat-emoji">$1</span>');
+}
+
 const GroupChat = () => {
     const { groupId } = useParams();
     const navigate = useNavigate();
@@ -547,15 +553,17 @@ const GroupChat = () => {
                                         </span>
                                     )}
                                     {message.message && (
-                                        <p className="message-text" style={{
-                                            margin: '0 0 4px 0',
-                                            fontSize: '14px',
-                                            lineHeight: '1.4',
-                                            color: '#111b21',
-                                            wordWrap: 'break-word'
-                                        }}>
-                                            {message.message}
-                                        </p>
+                                        <p
+                                            className="message-text"
+                                            style={{
+                                                margin: '0 0 4px 0',
+                                                fontSize: '14px',
+                                                lineHeight: '1.4',
+                                                color: '#111b21',
+                                                wordWrap: 'break-word'
+                                            }}
+                                            dangerouslySetInnerHTML={{ __html: wrapEmojis(message.message) }}
+                                        />
                                     )}
                                     {message.file && (
                                         <div className="message-file" style={{ marginBottom: '4px' }}>
